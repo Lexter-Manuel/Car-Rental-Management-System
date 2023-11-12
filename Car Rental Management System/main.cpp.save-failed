@@ -1,0 +1,750 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <windows.h>
+#include <limits>
+#include <iomanip>
+
+using namespace std;
+int mainScreen();
+int main();
+int admin();
+void newCar();
+bool isLoggedIn();
+void deleteCar();
+void dispCar();
+void listAvailableCars();
+void rentCar();
+void deleteCar();
+
+
+bool isLoggedIn(string username, string password, string checkUn, string checkPw){
+
+
+    if(checkUn == username && checkPw == password){
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+string padTo(string str, const size_t num, const char paddingChar = ' ') {
+    int str_size = str.size();
+    for (int i=str_size; i<=num; i++) {
+        str = str + paddingChar;
+    }
+    return str;
+}
+
+string replaceto(string text,char frm, char to){
+    for(int i = 0; i< text.length();i++){
+        string newtext;
+            if(text[i] == frm){
+                text[i] = to;
+            }
+    }
+    return text;
+}
+
+
+
+void dispCar() {
+    ifstream showCars("listOfCars.txt");
+    string brand, model, fuel, type, isAvailable;
+    double pricePerDay;
+    int recno, totalrec = 0;
+    system ("CLS");
+    cout << "List Of Cars in Car Rental System: "<< endl;
+    cout << "   _____________________________________________________________________________________________________" << endl ;
+    cout << "   | No. |Brand                |Model                |Fuel       |Type       |Price      |Availability |" <<" " << endl ;
+    cout << "   -----------------------------------------------------------------------------------------------------" << endl ;
+    while (showCars >> recno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable){
+        brand = replaceto(brand,'_',' ');
+        model = replaceto(model,'_',' ');
+        stringstream formattedPrice;
+        formattedPrice << std::fixed << std::setprecision(2) << pricePerDay;
+          cout << "   |" << padTo(to_string(recno),3) << " " <<  padTo("|"+brand,20) <<" " << padTo("|"+model,20) <<" "
+                 << padTo("|"+fuel,10) << " " << padTo("|"+type,10) <<" " << padTo("|"+formattedPrice.str(),10)  << " " << padTo("|"+isAvailable,13) <<"|" << endl ;
+          cout << "   -----------------------------------------------------------------------------------------------------" << endl ;
+          totalrec++;
+
+     }
+     cout << "\ntotal number of Cars: "<< totalrec << endl;
+}
+
+void newCar(){
+    ofstream newrec("listOfCars.txt", ios::app);
+    ifstream recread("listOfCars.txt");
+    string brand, model, fuel, type, newFuel, newType, newBrand, newModel;
+    double pricePerDay, newPricePerDay;
+    int recNo = 0, totalRec = 1, newRecNo, fuelChoice, typeChoice;
+    string isAvailable, newIsAvailable;
+    char availChoice;
+    while (recread >> recNo >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable){
+        totalRec++;
+    }
+    recread.close();
+
+    system("CLS");
+
+    cout << "\tADDING NEW CAR";
+    cout << "\nEnter Car Brand : ";
+    getline(cin>>ws,newBrand);
+    cout << "\nEnter Brand Model : ";
+    getline(cin>>ws,newModel);
+    fChoice:
+    cout << "\nEnter Fuel([1]Diesel [2]Gasoline): ";
+    cin >> fuelChoice;
+    if (fuelChoice == 1){
+        newFuel = "Diesel";
+    }
+    else if (fuelChoice == 2){
+        newFuel = "Gasoline";
+    }
+    else {
+        cout << "Invalid input";
+        goto fChoice;
+    }
+    tChoice:
+    cout << "\nEnter Type([1]Automatic [2]Manual): ";
+    cin >> typeChoice;
+    if (typeChoice == 1){
+        newType = "Automatic";
+    }
+    else if (typeChoice == 2){
+        newType = "Manual";
+    }
+    else {
+        cout << "Invalid input";
+        goto tChoice;
+    }
+    cout << "\nEnter Car's Price per day : ";
+    cin >> newPricePerDay;
+    carAvail:
+    cout << "\nWill it be available for rent(y/n) : ";          //Manual or automatic, diesel,
+    cin >> availChoice;
+    if(availChoice == 'y' || availChoice == 'Y'){
+        newIsAvailable = "Available";
+    }
+    else if (availChoice == 'n' || availChoice == 'N'){
+        newIsAvailable = "Not Available";
+    }
+    else {
+        cout << "Invalid Input!";
+        goto carAvail;
+    }
+    system("CLS");
+    newBrand = replaceto(newBrand,' ','_');
+    newModel = replaceto(newModel,' ','_');
+    newRecNo = totalRec++;
+    newrec << endl << newRecNo << "   " << newBrand << "   " << newModel << "   " << newFuel << "   " << newType << "   " << fixed << setprecision(2) << newPricePerDay << "   " << newIsAvailable;
+    newrec.close();
+}
+
+void deleteCar() {
+    system("cls");
+    dispCar();
+    int recno;
+    cout << "Enter the record number of the car you want to delete: ";
+    cin >> recno;
+
+    ifstream carData("listOfCars.txt");
+    ofstream tempFile("temp.txt");
+
+    string brand, model, fuel, type, isAvailable;
+    double pricePerDay;
+    int currentRecno;
+    bool carFound = false;
+
+    while (carData >> currentRecno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable) {
+        if (currentRecno == recno) {
+            carFound = true;
+            cout << "Car with record number " << recno << " has been deleted." << endl;
+        } else {
+            tempFile << currentRecno << " " << brand << " " << model << " " << fuel << " " << type << " " << fixed << setprecision(2) << pricePerDay << " " << isAvailable << endl;
+        }
+    }
+
+    carData.close();
+    tempFile.close();
+
+    if (carFound) {
+        remove("listOfCars.txt");
+        rename("temp.txt", "listOfCars.txt");
+    } else {
+        cout << "Car not found." << endl;
+    }
+}
+
+int pickNumberToChange;
+
+void chooseChange(){
+    cout << "\nEnter what you want to change: ";
+    cout << "\n1. Brand";
+    cout << "\n2. Model";
+    cout << "\n3. Fuel";
+    cout << "\n4. Type";
+    cout << "\n5. Price";
+    cout << "\n6. Availability";
+    cout << "\n---------------------------\nChoice: ";
+    cin >> pickNumberToChange;
+
+    while (pickNumberToChange < 1 || pickNumberToChange > 6) {
+        cout << "Invalid input. Please choose a number between 1 and 6: ";
+        cin >> pickNumberToChange;
+    }
+}
+
+void updateCar(){
+    dispCar();
+
+    string brand, model, fuel, type, newFuel, newType, newBrand, newModel, isAvailable, newIsAvailable, change, fBrand, fModel;
+    bool found = false;
+    double pricePerDay, newPricePerDay;
+    int recno, upNum, pick, fuelChoice, typeChoice;
+    char availChoice;
+
+    while(true){
+    cout << endl << "Search for what you want to update by: " << endl;
+    cout << "1. Record number" << endl;
+    cout << "2. Brand and model" << endl;
+    cout << "--------------------------------";
+    cout << endl << "Choice: ";
+    cin >> pick;
+
+    ifstream carRead("listOfCars.txt");
+    ofstream editCar("temp.txt", ios::app);
+
+
+    switch(pick){
+case 1:
+    cout << "Enter record number to update: ";
+    cin >> upNum;
+
+    while (carRead >> recno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable){
+        if (recno == upNum){
+            found = true;
+            chooseChange();
+            switch(pickNumberToChange){
+        case 1:
+            cout << "Enter new brand: ";
+            cin >> brand;
+
+            break;
+        case 2:
+            cout << "Enter new model: ";
+            cin >> model;
+
+            break;
+        case 3:
+            fChoice:
+            cout << "\nEnter new Fuel([1]Diesel [2]Gasoline): ";
+            cin >> fuelChoice;
+            if (fuelChoice == 1){
+                fuel = "Diesel";
+            }
+            else if (fuelChoice == 2){
+                fuel = "Gasoline";
+            }
+            else {
+                cout << "Invalid input";
+                goto fChoice;
+            }
+
+            break;
+        case 4:
+            tChoice:
+            cout << "\nEnter new Type([1]Automatic [2]Manual): ";
+            cin >> typeChoice;
+            if (typeChoice == 1){
+                newType = "Automatic";
+            }
+            else if (typeChoice == 2){
+                newType = "Manual";
+            }
+            else {
+                cout << "Invalid input";
+                goto tChoice;
+            }
+            break;
+        case 5:
+            cout << "Enter new price: ";
+            cin >> pricePerDay;
+
+            break;
+        case 6:
+            carAvail:
+            cout << "\nWill it be available for rent(y/n) : ";
+            cin >> availChoice;
+            if(availChoice == 'y' || availChoice == 'Y'){
+                isAvailable = "Available";
+            }
+            else if (availChoice == 'n' || availChoice == 'N'){
+                isAvailable = "Not Available";
+            }
+            else {
+                cout << "Invalid Input!";
+                goto carAvail;
+            }
+            break;
+        default:
+            cout << "Invalid input" << endl;
+        }
+    }
+    }
+    break;
+case 2:
+    cout << "Enter the brand and model of the car you want to update: ";
+    cout << "\nEnter brand: "; cin >> fBrand;
+    cout << "\nEnter model: "; cin >> fModel;
+
+    while(carRead >> recno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable){
+        if (fBrand == brand && fModel == model){
+            found = true;
+            chooseChange();
+            switch(pickNumberToChange){
+        case 1:
+            cout << "Enter new brand: ";
+            cin >> brand;
+
+            break;
+        case 2:
+            cout << "Enter new model: ";
+            cin >> model;
+
+            break;
+        case 3:
+            fChoice2:
+            cout << "\nEnter new Fuel([1]Diesel [2]Gasoline): ";
+            cin >> fuelChoice;
+            if (fuelChoice == 1){
+                fuel = "Diesel";
+            }
+            else if (fuelChoice == 2){
+                fuel = "Gasoline";
+            }
+            else {
+                cout << "Invalid input";
+                goto fChoice2;
+            }
+
+            break;
+        case 4:
+            tChoice2:
+            cout << "\nEnter new Type([1]Automatic [2]Manual): ";
+            cin >> typeChoice;
+            if (typeChoice == 1){
+                newType = "Automatic";
+            }
+            else if (typeChoice == 2){
+                newType = "Manual";
+            }
+            else {
+                cout << "Invalid input";
+                goto tChoice2;
+            }
+            break;
+        case 5:
+            cout << "Enter new price: ";
+            cin >> pricePerDay;
+
+            break;
+        case 6:
+            carAvail2:
+            cout << "Enter new availability: ";
+            cin >> availChoice;
+            if(availChoice == 'y' || availChoice == 'Y'){
+            newIsAvailable = "Available";
+            }
+            else if (availChoice == 'n' || availChoice == 'N'){
+                newIsAvailable = "Not Available";
+            }
+            else {
+                cout << "Invalid Input!";
+                goto carAvail2;
+            }
+
+            break;
+        default:
+            cout << "Invalid input" << endl;
+        }
+        }
+    }
+    break;
+    }
+    editCar << recno << "   " << brand << "   " << model << "   " << fuel << "   " << type << "   " << fixed << setprecision(2) << pricePerDay << "   " << isAvailable << "\n";
+
+    carRead.close();
+    editCar.close();
+
+    remove("listOfCars.txt");
+    rename("temp.txt", "listOfCars.txt");
+    if(found){
+        cout << "Successfully updated!\n";
+    }
+    else {
+        cout << "Unit not found" << endl;
+    }
+        cout << "Do you want to continue updating? (yes/no): ";
+        string userChoice;
+        cin >> userChoice;
+
+        if (userChoice != "yes" && userChoice != "Yes") {
+            break;
+        }
+    }
+}
+
+int main(){
+    char yn;
+    do {
+    int choice, endReg;
+    string uname, pass, un, pw;
+    cout << " ________________________________________________\n";
+    cout << "|          Car Rental System Login Page          |\n";
+    cout << " ________________________________________________\n";
+    cout << "|                                                |\n";
+    cout << "| 1: Register an account                         |\n";
+    cout << "| 2. Login account                               |\n";
+    cout << "| 3. Admin Login                                 |\n";
+    cout << "| 4. Exit Program                                |\n";
+    cout << "|                                                |\n";
+    cout << " ________________________________________________\n";
+    cout << "|                                                |\n";
+    cout << "  Enter Choice: "; cin >> choice; cin.ignore();
+    cout << "|                                                |\n";
+    cout << " ________________________________________________\n";
+    if(choice == 1){
+        cout << "Enter your desired username: ";
+        getline(cin >> ws, uname);
+        cout << "Enter your password: ";                    //First name, middle name, last name, driver's license id number, contact number, email
+        getline(cin >> ws, pass);
+        if (uname == "admin" || pass == "admin"){
+            cout << "You entered an admin account or exclusive admin password. Please enter valid user account username and password.\n\n";
+            system("PAUSE");
+            system("CLS");
+            main();
+        }
+        else{
+            ofstream file;
+            file.open(uname + ".txt");
+            file << uname << endl << pass;
+            file.close();
+            system("CLS");
+            cout << " ________________________________________________\n";
+            cout << "|        ACCOUNT SUCCESSFULLY REGISTERED!        |\n";
+            cRep:
+            cout << " ________________________________________________\n";
+            cout << "|1. Go back to Login/Registraion Page            |\n";
+            cout << "|2. Exit Program                                 |\n";
+            cout << " ________________________________________________\n";
+            cout << "Your choice: ";
+            cin >> endReg;
+            if(endReg == 1){
+                system("CLS");
+                main();
+            }
+            else if (endReg == 2){
+                cout << "Thank you for using our program!\n\n";
+                return 0;
+            }
+            else {
+                cout << "Invalid choice\n\n";
+                goto cRep;
+            }
+        }
+        }
+    else if (choice == 2){
+    cout << "\nEnter username: ";
+    getline(cin >> ws, uname);
+    cout << "Enter password: ";
+    getline(cin >> ws, pass);
+    cout << " ________________________________________________\n";
+    ifstream read(uname + ".txt");
+    getline(read, un);
+    getline (read, pw);
+        bool status = isLoggedIn(uname, pass, un, pw);
+        if (!status){
+            if(un == "admin"){
+                cout << "You entered an admin account. Please enter a valid user account.\n\n";
+                system("PAUSE");
+                system("CLS");
+                main();
+            }
+            else{
+                cout << "\nPlease check if you entered your username and password correctly." << endl;
+                system("PAUSE");
+                system("CLS");
+                main();
+            }
+        }
+
+        else {
+                cout << "\nSuccessfully logged in!" << endl;
+                system("PAUSE");
+                system("CLS");
+                mainScreen();
+            }
+    }
+else if (choice == 3) {
+    cout << "Please enter username: ";
+    getline(cin >> ws, uname);
+    cout << "Please enter password: ";
+    getline(cin >> ws, pass);
+    if (uname == "admin" && pass == "admin"){
+        admin();
+    }
+    else {
+        cout << "Login Failed!\n";
+        system("PAUSE");
+        system("CLS");
+        main();
+    }
+}
+else if (choice == 4) {
+    return 0;
+}
+else {
+    cout << "Invalid choice! \n";
+    cin.clear();
+    cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    cout << "Do you want to continue(y/n)? ";
+    cin >> yn;
+    system("CLS");
+    }
+
+    }while(yn == 'y' || yn == 'Y');
+}
+
+
+void listAvailableCars() {
+    system("cls");
+    ifstream carData("listOfCars.txt");
+    string brand, model, fuel, type, isAvailable;
+    double pricePerDay;
+    int recno, totalrec = 0;
+
+    system("CLS");
+    cout << "List Of Available Cars in Car Rental System: " << endl;
+   cout << "   _____________________________________________________________________________________________________" << endl ;
+    cout << "   | No. |Brand                |Model                |Fuel       |Type       |Price      |Availability |" <<" " << endl ;
+    cout << "   -----------------------------------------------------------------------------------------------------" << endl ;
+    while (carData >> recno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable) {
+        if (isAvailable == "Available") {
+        brand = replaceto(brand,'_',' ');
+        model = replaceto(model,'_',' ');
+        stringstream formattedPrice;
+        formattedPrice << std::fixed << std::setprecision(2) << pricePerDay;
+          cout << "   |" << padTo(to_string(recno),3) << " " <<  padTo("|"+brand,20) <<" " << padTo("|"+model,20) <<" "
+                 << padTo("|"+fuel,10) << " " << padTo("|"+type,10) <<" " << padTo("|"+formattedPrice.str(),10)  << " " << padTo("|"+isAvailable,13) <<"|" << endl ;
+          cout << "   -----------------------------------------------------------------------------------------------------" << endl ;
+          totalrec++;
+        }
+    }
+
+    cout << "\ntotal number of Cars: " << totalrec << endl;
+}
+
+void rentCar() {
+    int recno;
+    cout << "Enter the record number of the car you want to rent: ";
+    cin >> recno;
+
+    ifstream carData("listOfCars.txt");
+    ofstream tempFile("temp.txt");
+
+    string brand, model, fuel, type, isAvailable;
+    double pricePerDay;
+    int currentRecno;
+    bool carFound = false;
+
+    while (carData >> currentRecno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable) {
+        if (currentRecno == recno) {
+            if (isAvailable == "Available") {
+                isAvailable = "Not Available";
+                carFound = true;
+            } else {
+                cout << "This car is already rented." << endl;
+            }
+        }
+
+        tempFile << currentRecno << " " << brand << " " << model << " " << fuel << " " << type << " " << fixed << setprecision(2) << pricePerDay << " " << isAvailable << endl;
+    }
+
+    carData.close();
+    tempFile.close();
+
+    if (carFound) {
+        remove("listOfCars.txt");
+        rename("temp.txt", "listOfCars.txt");
+        cout << "Car rented successfully." << endl;
+    } else {
+        cout << "Car not found or is already rented." << endl;
+    }
+}
+
+void listRentedCars() {
+    ifstream carData("listOfCars.txt");
+    string brand, model, fuel, type, isAvailable;
+    double pricePerDay;
+    int recno, totalrec = 0;
+
+    system("CLS");
+    cout << "List Of Rented Cars in Car Rental System: " << endl;
+    cout << "   _____________________________________________________________________________________________________" << endl ;
+    cout << "   | No. |Brand                |Model                |Fuel       |Type       |Price      |Availability |" <<" " << endl ;
+    cout << "   -----------------------------------------------------------------------------------------------------" << endl ;
+    while (carData >> recno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable) {
+        if (isAvailable == "Not Available") {
+        brand = replaceto(brand,'_',' ');
+        model = replaceto(model,'_',' ');
+        stringstream formattedPrice;
+        formattedPrice << std::fixed << std::setprecision(2) << pricePerDay;
+          cout << "   |" << padTo(to_string(recno),3) << " " <<  padTo("|"+brand,20) <<" " << padTo("|"+model,20) <<" "
+                 << padTo("|"+fuel,10) << " " << padTo("|"+type,10) <<" " << padTo("|"+formattedPrice.str(),10)  << " " << padTo("|"+isAvailable,13) <<"|" << endl ;
+          cout << "   -----------------------------------------------------------------------------------------------------" << endl ;
+          totalrec++;
+        }
+    }
+
+    cout << "\ntotal number of Rented Cars: " << totalrec << endl;
+}
+
+void returnCar() {
+    int recno;
+    system("cls");
+    listRentedCars();
+    cout << "Enter the record number of the car you want to return: ";
+    cin >> recno;
+
+    ifstream carData("listOfCars.txt");
+    ofstream tempFile("temp.txt");
+
+    string brand, model, fuel, type, isAvailable;
+    double pricePerDay;
+    int currentRecno;
+    bool carFound = false;
+
+    while (carData >> currentRecno >> brand >> model >> fuel >> type >> pricePerDay >> isAvailable) {
+        if (currentRecno == recno) {
+            if (isAvailable == "Not Available") {
+                isAvailable = "Available";
+                carFound = true;
+            } else {
+                cout << "This car is already available." << endl;
+            }
+        }
+
+        tempFile << currentRecno << " " << brand << " " << model << " " << fuel << " " << type << " " << fixed << setprecision(2) << pricePerDay << " " << isAvailable << endl;
+    }
+
+    carData.close();
+    tempFile.close();
+
+    if (carFound) {
+        remove("listOfCars.txt");
+        rename("temp.txt", "listOfCars.txt");
+        cout << "Car returned successfully." << endl;
+    } else {
+        cout << "Car not found or is already available." << endl;
+    }
+}
+
+int mainScreen()
+{
+    system("cls");
+    listAvailableCars();
+    int choose;
+    cout << " ________________________________________________\n";
+    cout << "|-     Car Rental Management System             -|" << endl;
+    cout << "++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    cout << "|-               Please choose                  -|" << endl;
+    cout << "++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+    cout << "| 1. Display All Cars in the List                |" << endl;
+    cout << "| 2. Rent A Car                                  |" << endl;
+    cout << "| 3. Exit Program                                |" << endl;
+    cout << " ________________________________________________\n";
+    cout << "Enter choice: ";
+    cin >> choose;
+
+    switch(choose){
+case 1:
+    dispCar();
+    system("pause");
+    mainScreen();
+    break;
+/*case 2:
+    listAvailableCars();
+    system("pause");
+    mainScreen();
+    break;*/
+case 2:
+    rentCar();
+    system("pause");
+    mainScreen();
+    break;
+case 3:
+    return 0;
+default:
+    cout << "Invalid Input!";
+    }
+
+    return 0;
+}
+
+int admin(){
+    adminScreen:
+    system("CLS");
+    int adminChoose;
+    cout << " ________________________________________________\n";
+    cout << "|                     ADMIN                      |\n";
+    cout << "++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    cout << "|    Welcome Admin, what do you want to do?      |\n";
+    cout << "++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    cout << "| 1. Add Car(s) For Car Rental System            |\n";
+    cout << "| 2. Display Car(s) for Car Rental System        |\n";
+    cout << "| 3. Update Car(s) for Car Rental System         |\n";
+    cout << "| 4. Delete Car(s) for Car Rental System         |\n";
+    cout << "| 5. Return a Car                                |\n";
+    cout << "| 6. Exit Program                                |\n";
+    cout << " ________________________________________________\n";
+    cout << " Please Choose: ";
+    cin >> adminChoose;
+
+    switch(adminChoose){
+case 1:
+    newCar();
+    system("pause");
+    admin();
+    break;
+case 2:
+    dispCar();
+    system("pause");
+    admin();
+    break;
+case 3:
+    updateCar();
+    system("pause");
+    admin();
+    break;
+case 4:
+    deleteCar();
+    system("pause");
+    admin();
+    break;
+case 5:
+    returnCar();
+    system("pause");
+    admin();
+    break;
+case 6:
+    return 0;
+    break;
+default:
+    cout << "Invalid Input!";
+    goto adminScreen;
+    }
+}

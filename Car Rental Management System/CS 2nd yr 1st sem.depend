@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1698209681 source:c:\users\lexter\desktop\coder\c++\new folder\cs 2nd yr 1st sem\main.cpp
+	<iostream>
+	<fstream>
+	<string>
+	<cstdio>
+	<cstdlib>
+
